@@ -16,11 +16,9 @@
 package de.interactive_instruments.etf.test;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
+import de.interactive_instruments.SUtils;
 import de.interactive_instruments.etf.dal.dto.Dto;
 import de.interactive_instruments.etf.dal.dto.MetaDataItemDto;
 import de.interactive_instruments.etf.dal.dto.RepositoryItemDto;
@@ -36,7 +34,7 @@ import de.interactive_instruments.etf.model.EidFactory;
 import de.interactive_instruments.etf.model.ParameterSet;
 
 /**
- * @author J. Herrmann ( herrmann <aT) interactive-instruments (doT> de )
+ * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
  */
 public class TestDtos {
 
@@ -60,6 +58,7 @@ public class TestDtos {
 
 	public static final ExecutableTestSuiteDto ETS_DTO_1;
 	public static final ExecutableTestSuiteDto ETS_DTO_2;
+	public static final ExecutableTestSuiteDto ETS_DTO_3;
 
 	public static final TestTaskResultDto TTR_DTO_1;
 	public static final TestTaskResultDto TTR_DTO_2;
@@ -145,6 +144,7 @@ public class TestDtos {
 		parameterSet.addParameter(new ParameterSet.MutableParameter("Parameter.1.key", "Parameter.1.value"));
 		parameterSet.addParameter(new ParameterSet.MutableParameter("Parameter.2.key", "Parameter.2.value"));
 
+		// ETS DTO 1
 		ETS_DTO_1 = new ExecutableTestSuiteDto();
 		ETS_DTO_1.setTranslationTemplateBundle(TTB_DTO_1);
 		ETS_DTO_1.setParameters(parameterSet);
@@ -165,6 +165,7 @@ public class TestDtos {
 		TASK_DTO_1.setExecutableTestSuite(ETS_DTO_1);
 		TASK_DTO_1.setTestTaskResult(TTR_DTO_1);
 
+		// ETS DTO 2
 		ETS_DTO_2 = new ExecutableTestSuiteDto();
 		ETS_DTO_2.setTranslationTemplateBundle(TTB_DTO_1);
 		ETS_DTO_2.setParameters(parameterSet);
@@ -184,6 +185,19 @@ public class TestDtos {
 		TASK_DTO_2.setTestObject(TO_DTO_1);
 		TASK_DTO_2.setExecutableTestSuite(ETS_DTO_2);
 		TASK_DTO_2.setTestTaskResult(TTR_DTO_2);
+
+		// ETS DTO 3
+		ETS_DTO_3 = new ExecutableTestSuiteDto();
+		ETS_DTO_3.setTranslationTemplateBundle(TTB_DTO_1);
+		ETS_DTO_3.setParameters(parameterSet);
+		ETS_DTO_3.setTags(new ArrayList<TagDto>() {
+			{
+				add(TAG_DTO_2);
+				add(TAG_DTO_3);
+			}
+		});
+		createEtsStructure(ETS_DTO_3, 3);
+		ETS_DTO_3.setDisabled(true);
 
 		TR_DTO_1 = new TestRunDto();
 		setBasicProperties(TR_DTO_1, 1);
@@ -222,7 +236,7 @@ public class TestDtos {
 			rDto.setRemoteResource(URI.create("http://notset"));
 			rDto.setCreationDate(new Date(0));
 			rDto.setVersionFromStr("1.0.0");
-			rDto.setItemHash(name.getBytes());
+			rDto.setItemHash(SUtils.fastCalcHashAsHexStr(name));
 		}
 		if (dto instanceof ResultModelItemDto) {
 			final ResultModelItemDto rDto = ((ResultModelItemDto) dto);
@@ -237,9 +251,7 @@ public class TestDtos {
 	static private final int testStepSize = 3;
 	static private final int testAssertionSize = 3;
 
-	private static int idR = 555555;
-
-	static void createResultStructure(final TestTaskResultDto ttrDto, final ExecutableTestSuiteDto etsDto, final int i) {
+	public static void createResultStructure(final TestTaskResultDto ttrDto, final ExecutableTestSuiteDto etsDto, final int i) {
 		setBasicProperties(ttrDto, i);
 		ttrDto.setResultedFrom(etsDto);
 		ttrDto.setTestObject(TO_DTO_1);
@@ -250,6 +262,8 @@ public class TestDtos {
 		logFile.setEncoding("UTF-8");
 		logFile.setMimeType("text/plain");
 		ttrDto.addAttachment(logFile);
+
+		long idR = i*1111111111111L;
 
 		// Create Test Suite Results
 		final List<TestModuleResultDto> testSuiteResultDtos = new ArrayList<TestModuleResultDto>();
@@ -315,9 +329,15 @@ public class TestDtos {
 		ttrDto.setTestModuleResults(testSuiteResultDtos);
 	}
 
-	private static int idE = 111111;
+	public static void createEtsStructure(final ExecutableTestSuiteDto etsDto) {
+		createEtsStructure(etsDto, new Random().nextLong());
+	}
 
-	static void createEtsStructure(ExecutableTestSuiteDto etsDto, int i) {
+	public static void createEtsStructure(ExecutableTestSuiteDto etsDto, int i) {
+		createEtsStructure(etsDto, (long)i);
+	}
+
+	public static void createEtsStructure(ExecutableTestSuiteDto etsDto, long i) {
 		setBasicProperties(etsDto, i);
 		etsDto.setTestDriver(COMP_DTO_1);
 		etsDto.setSupportedTestObjectTypes(new ArrayList<TestObjectTypeDto>() {
@@ -325,6 +345,8 @@ public class TestDtos {
 				add(TOT_DTO_1);
 			}
 		});
+
+		long idE = i*11111111L;
 
 		// Create Test Modules
 		final List<TestModuleDto> testModuleDtos = new ArrayList<TestModuleDto>();
