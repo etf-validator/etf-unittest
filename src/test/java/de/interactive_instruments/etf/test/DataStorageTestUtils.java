@@ -25,8 +25,10 @@ import de.interactive_instruments.etf.dal.dao.basex.BsxDataStorage;
 import de.interactive_instruments.etf.dal.dto.capabilities.TestObjectTypeDto;
 import de.interactive_instruments.etf.detector.TestObjectTypeDetectorManager;
 import de.interactive_instruments.etf.model.EidMap;
+import de.interactive_instruments.exceptions.ExcUtils;
 import de.interactive_instruments.exceptions.InitializationException;
 import de.interactive_instruments.exceptions.InvalidStateTransitionException;
+import de.interactive_instruments.exceptions.ObjectWithIdNotFoundException;
 import de.interactive_instruments.exceptions.config.ConfigurationException;
 
 /**
@@ -65,9 +67,12 @@ public class DataStorageTestUtils {
 			final EidMap<TestObjectTypeDto> supportedTypes = TestObjectTypeDetectorManager.getSupportedTypes();
 			if (supportedTypes != null) {
 				for (final TestObjectTypeDto testObjectTypeDto : supportedTypes.values()) {
-					if (!testObjectTypeDao.exists(testObjectTypeDto.getId())) {
-						testObjectTypeDao.add(testObjectTypeDto);
+					try {
+						testObjectTypeDao.delete(testObjectTypeDto.getId());
+					} catch (ObjectWithIdNotFoundException e) {
+						ExcUtils.suppress(e);
 					}
+					testObjectTypeDao.add(testObjectTypeDto);
 				}
 			}
 		}
