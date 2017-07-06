@@ -15,9 +15,6 @@
  */
 package de.interactive_instruments.etf.test;
 
-import java.net.URI;
-import java.util.*;
-
 import de.interactive_instruments.SUtils;
 import de.interactive_instruments.etf.dal.dto.Dto;
 import de.interactive_instruments.etf.dal.dto.MetaDataItemDto;
@@ -32,6 +29,9 @@ import de.interactive_instruments.etf.dal.dto.translation.TranslationTemplateBun
 import de.interactive_instruments.etf.dal.dto.translation.TranslationTemplateDto;
 import de.interactive_instruments.etf.model.EidFactory;
 import de.interactive_instruments.etf.model.ParameterSet;
+
+import java.net.URI;
+import java.util.*;
 
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
@@ -86,6 +86,7 @@ public class TestDtos {
 
 		TO_DTO_1 = new TestObjectDto();
 		setBasicProperties(TO_DTO_1, 1);
+		TO_DTO_1.setRemoteResource(null);
 
 		TOT_DTO_1 = new TestObjectTypeDto();
 		setBasicProperties(TOT_DTO_1, 1);
@@ -263,7 +264,7 @@ public class TestDtos {
 		logFile.setMimeType("text/plain");
 		ttrDto.addAttachment(logFile);
 
-		long idR = i*1111111111111L;
+		long idR = i * 1111111111111L;
 
 		// Create Test Suite Results
 		final List<TestModuleResultDto> testSuiteResultDtos = new ArrayList<TestModuleResultDto>();
@@ -334,7 +335,7 @@ public class TestDtos {
 	}
 
 	public static void createEtsStructure(ExecutableTestSuiteDto etsDto, int i) {
-		createEtsStructure(etsDto, (long)i);
+		createEtsStructure(etsDto, (long) i);
 	}
 
 	public static void createEtsStructure(ExecutableTestSuiteDto etsDto, long i) {
@@ -346,7 +347,7 @@ public class TestDtos {
 			}
 		});
 
-		long idE = i*11111111L;
+		long idE = i * 11111111L;
 
 		// Create Test Modules
 		final List<TestModuleDto> testModuleDtos = new ArrayList<TestModuleDto>();
