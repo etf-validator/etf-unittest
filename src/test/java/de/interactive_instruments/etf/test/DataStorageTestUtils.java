@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2010-2017 interactive instruments GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,8 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.interactive_instruments.etf.test;
+
+import java.io.IOException;
 
 import de.interactive_instruments.IFile;
 import de.interactive_instruments.etf.EtfConstants;
@@ -27,8 +28,6 @@ import de.interactive_instruments.etf.model.EidMap;
 import de.interactive_instruments.exceptions.InitializationException;
 import de.interactive_instruments.exceptions.InvalidStateTransitionException;
 import de.interactive_instruments.exceptions.config.ConfigurationException;
-
-import java.io.IOException;
 
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
@@ -50,7 +49,7 @@ public class DataStorageTestUtils {
 				DATA_STORAGE_DIR = null;
 			}
 
-			if(DATA_STORAGE_DIR==null || !DATA_STORAGE_DIR.exists()) {
+			if (DATA_STORAGE_DIR == null || !DATA_STORAGE_DIR.exists()) {
 				throw new InitializationException("DATA_STORAGE_DIR not set");
 			}
 			DataStorageTestUtils.DATA_STORAGE.getConfigurationProperties().setProperty(EtfConstants.ETF_DATASOURCE_DIR,
@@ -60,13 +59,13 @@ public class DataStorageTestUtils {
 			DATA_STORAGE.init();
 			DataStorageRegistry.instance().register(DATA_STORAGE);
 
-			final WriteDao<TestObjectTypeDto> testObjectTypeDao = ((WriteDao<TestObjectTypeDto>)
-					(DATA_STORAGE.getDao(TestObjectTypeDto.class)));
+			final WriteDao<TestObjectTypeDto> testObjectTypeDao = ((WriteDao<TestObjectTypeDto>) (DATA_STORAGE
+					.getDao(TestObjectTypeDto.class)));
 
 			final EidMap<TestObjectTypeDto> supportedTypes = TestObjectTypeDetectorManager.getSupportedTypes();
-			if(supportedTypes!=null) {
+			if (supportedTypes != null) {
 				for (final TestObjectTypeDto testObjectTypeDto : supportedTypes.values()) {
-					if(!testObjectTypeDao.exists(testObjectTypeDto.getId())) {
+					if (!testObjectTypeDao.exists(testObjectTypeDto.getId())) {
 						testObjectTypeDao.add(testObjectTypeDto);
 					}
 				}

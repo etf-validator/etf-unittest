@@ -15,6 +15,9 @@
  */
 package de.interactive_instruments.etf.test;
 
+import java.net.URI;
+import java.util.*;
+
 import de.interactive_instruments.SUtils;
 import de.interactive_instruments.etf.dal.dto.Dto;
 import de.interactive_instruments.etf.dal.dto.MetaDataItemDto;
@@ -29,9 +32,6 @@ import de.interactive_instruments.etf.dal.dto.translation.TranslationTemplateBun
 import de.interactive_instruments.etf.dal.dto.translation.TranslationTemplateDto;
 import de.interactive_instruments.etf.model.EidFactory;
 import de.interactive_instruments.etf.model.ParameterSet;
-
-import java.net.URI;
-import java.util.*;
 
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
