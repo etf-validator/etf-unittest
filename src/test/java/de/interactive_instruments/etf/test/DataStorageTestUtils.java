@@ -66,12 +66,8 @@ public class DataStorageTestUtils {
 
 			final EidMap<TestObjectTypeDto> supportedTypes = TestObjectTypeDetectorManager.getSupportedTypes();
 			if (supportedTypes != null) {
+				testObjectTypeDao.deleteAllExisting(supportedTypes.keySet());
 				for (final TestObjectTypeDto testObjectTypeDto : supportedTypes.values()) {
-					try {
-						testObjectTypeDao.delete(testObjectTypeDto.getId());
-					} catch (ObjectWithIdNotFoundException e) {
-						ExcUtils.suppress(e);
-					}
 					testObjectTypeDao.add(testObjectTypeDto);
 				}
 			}
