@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2017 interactive instruments GmbH
+ * Copyright 2010-2018 interactive instruments GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import java.io.IOException;
 
 import de.interactive_instruments.IFile;
 import de.interactive_instruments.etf.EtfConstants;
-import de.interactive_instruments.etf.dal.dao.DataStorageRegistry;
 import de.interactive_instruments.etf.dal.dao.WriteDao;
 import de.interactive_instruments.etf.dal.dao.basex.BsxDataStorage;
 import de.interactive_instruments.etf.dal.dto.capabilities.TestObjectTypeDto;
@@ -59,7 +58,6 @@ public class DataStorageTestUtils {
 			DATA_STORAGE.getConfigurationProperties().setProperty("etf.webapp.base.url", "http://localhost/etf-webapp");
 			DATA_STORAGE.getConfigurationProperties().setProperty("etf.api.base.url", "http://localhost/etf-webapp/v2");
 			DATA_STORAGE.init();
-			DataStorageRegistry.instance().register(DATA_STORAGE);
 
 			final WriteDao<TestObjectTypeDto> testObjectTypeDao = ((WriteDao<TestObjectTypeDto>) (DATA_STORAGE
 					.getDao(TestObjectTypeDto.class)));
