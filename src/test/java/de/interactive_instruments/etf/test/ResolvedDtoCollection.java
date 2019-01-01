@@ -1,5 +1,5 @@
-/*
- * Copyright 2010-2019 interactive instruments GmbH
+/**
+ * Copyright 2010-2018 interactive instruments GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.interactive_instruments.etf.test;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 import de.interactive_instruments.etf.dal.dao.PreparedDtoCollection;
 import de.interactive_instruments.etf.dal.dto.Dto;
@@ -23,13 +29,6 @@ import de.interactive_instruments.etf.model.EID;
 import de.interactive_instruments.etf.model.EidMap;
 import de.interactive_instruments.etf.model.OutputFormat;
 import de.interactive_instruments.properties.PropertyHolder;
-
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
@@ -42,35 +41,44 @@ final class ResolvedDtoCollection<T extends Dto> implements PreparedDtoCollectio
 		this.dtos = new DefaultEidMap<>(dtos);
 	}
 
-	@Override public void release() {
+	@Override
+	public void release() {
 
 	}
 
-	@Override public void streamTo(final OutputFormat outputFormat, final PropertyHolder arguments, final OutputStream outputStream) throws IOException {
+	@Override
+	public void streamTo(final OutputFormat outputFormat, final PropertyHolder arguments, final OutputStream outputStream)
+			throws IOException {
 
 	}
 
-	@Override public EidMap<T> unmodifiable() {
+	@Override
+	public EidMap<T> unmodifiable() {
 		return dtos.unmodifiable();
 	}
 
-	@Override public EidMap<T> getAll(final Collection<?> keys) {
+	@Override
+	public EidMap<T> getAll(final Collection<?> keys) {
 		return dtos.getAll(keys);
 	}
 
-	@Override public void removeAll(final Collection<?> keys) {
+	@Override
+	public void removeAll(final Collection<?> keys) {
 		dtos.removeAll(keys);
 	}
 
-	@Override public T _internalGet(final Object key) {
+	@Override
+	public T _internalGet(final Object key) {
 		return dtos._internalGet(key);
 	}
 
-	@Override public T _internalRemove(final Object key) {
+	@Override
+	public T _internalRemove(final Object key) {
 		return dtos._internalRemove(key);
 	}
 
-	@Override public boolean _internalContainsKey(final Object key) {
+	@Override
+	public boolean _internalContainsKey(final Object key) {
 		return dtos._internalContainsKey(key);
 	}
 
@@ -79,47 +87,58 @@ final class ResolvedDtoCollection<T extends Dto> implements PreparedDtoCollectio
 		return dtos.createCopy();
 	}
 
-	@Override public int compareTo(final PreparedDtoCollection o) {
+	@Override
+	public int compareTo(final PreparedDtoCollection o) {
 		return Integer.compare(dtos.size(), o.size());
 	}
 
-	@Override public Iterator<T> iterator() {
+	@Override
+	public Iterator<T> iterator() {
 		return dtos.asCollection().iterator();
 	}
 
-	@Override public int size() {
+	@Override
+	public int size() {
 		return dtos.size();
 	}
 
-	@Override public boolean isEmpty() {
+	@Override
+	public boolean isEmpty() {
 		return dtos.isEmpty();
 	}
 
-	@Override public boolean containsValue(final Object value) {
+	@Override
+	public boolean containsValue(final Object value) {
 		return dtos.containsKey(value);
 	}
 
-	@Override public T put(final EID key, final T value) {
+	@Override
+	public T put(final EID key, final T value) {
 		return dtos.put(key, value);
 	}
 
-	@Override public void putAll(final Map<? extends EID, ? extends T> m) {
+	@Override
+	public void putAll(final Map<? extends EID, ? extends T> m) {
 		dtos.putAll(m);
 	}
 
-	@Override public void clear() {
+	@Override
+	public void clear() {
 		dtos.clear();
 	}
 
-	@Override public Set<EID> keySet() {
+	@Override
+	public Set<EID> keySet() {
 		return dtos.keySet();
 	}
 
-	@Override public Collection<T> values() {
+	@Override
+	public Collection<T> values() {
 		return dtos.values();
 	}
 
-	@Override public Set<Entry<EID, T>> entrySet() {
+	@Override
+	public Set<Entry<EID, T>> entrySet() {
 		return dtos.entrySet();
 	}
 }

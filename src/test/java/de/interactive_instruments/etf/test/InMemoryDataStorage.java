@@ -1,5 +1,5 @@
-/*
- * Copyright 2010-2019 interactive instruments GmbH
+/**
+ * Copyright 2010-2018 interactive instruments GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.interactive_instruments.etf.test;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import de.interactive_instruments.etf.dal.dao.Dao;
 import de.interactive_instruments.etf.dal.dao.DataStorage;
@@ -36,10 +39,6 @@ import de.interactive_instruments.exceptions.config.ConfigurationException;
 import de.interactive_instruments.properties.ConfigProperties;
 import de.interactive_instruments.properties.ConfigPropertyHolder;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
  */
@@ -52,53 +51,63 @@ class InMemoryDataStorage implements DataStorage {
 
 	}
 
-	@Override public void reset() {
+	@Override
+	public void reset() {
 		release();
 		init();
 	}
 
-	@Override public String createBackup() throws StorageException {
+	@Override
+	public String createBackup() throws StorageException {
 		return null;
 	}
 
-	@Override public List<String> getBackupList() {
+	@Override
+	public List<String> getBackupList() {
 		return null;
 	}
 
-	@Override public void restoreBackup(final String backupName) throws StorageException {
+	@Override
+	public void restoreBackup(final String backupName) throws StorageException {
 
 	}
 
-	@Override public <T extends Dto> Map<Class<T>, Dao<T>> getDaoMappings() {
+	@Override
+	public <T extends Dto> Map<Class<T>, Dao<T>> getDaoMappings() {
 		return daos;
 	}
 
-	@Override public void cleanAndOptimize() throws StorageException {
+	@Override
+	public void cleanAndOptimize() throws StorageException {
 
 	}
 
-	@Override public ConfigPropertyHolder getConfigurationProperties() {
+	@Override
+	public ConfigPropertyHolder getConfigurationProperties() {
 		return configPropertyHolder;
 	}
 
-	@Override public void init() {
-		daos.put(TestObjectDto.class, new InMemoryDao<>(this,TestObjectDto.class));
-		daos.put(TestObjectTypeDto.class, new InMemoryDao<>(this,TestObjectTypeDto.class));
-		daos.put(TestRunDto.class, new InMemoryDao<>(this,TestRunDto.class));
-		daos.put(TranslationTemplateBundleDto.class, new InMemoryDao<>(this,TranslationTemplateBundleDto.class));
-		daos.put(TagDto.class, new InMemoryDao<>(this,TagDto.class));
-		daos.put(ExecutableTestSuiteDto.class, new InMemoryDao<>(this,ExecutableTestSuiteDto.class));
-		daos.put(ComponentDto.class, new InMemoryDao<>(this,ComponentDto.class));
-		daos.put(TestTaskResultDto.class, new InMemoryDao<>(this,TestTaskResultDto.class));
-		daos.put(TestItemTypeDto.class, new InMemoryDao<>(this,TestItemTypeDto.class));
-		daos.put(TestTaskDto.class, new InMemoryDao<>(this,TestTaskDto.class));
+	@Override
+	public void init() {
+		daos.put(TestObjectDto.class, new InMemoryDao<>(this, TestObjectDto.class));
+		daos.put(TestObjectTypeDto.class, new InMemoryDao<>(this, TestObjectTypeDto.class));
+		daos.put(TestRunDto.class, new InMemoryDao<>(this, TestRunDto.class));
+		daos.put(TranslationTemplateBundleDto.class, new InMemoryDao<>(this, TranslationTemplateBundleDto.class));
+		daos.put(TagDto.class, new InMemoryDao<>(this, TagDto.class));
+		daos.put(ExecutableTestSuiteDto.class, new InMemoryDao<>(this, ExecutableTestSuiteDto.class));
+		daos.put(ComponentDto.class, new InMemoryDao<>(this, ComponentDto.class));
+		daos.put(TestTaskResultDto.class, new InMemoryDao<>(this, TestTaskResultDto.class));
+		daos.put(TestItemTypeDto.class, new InMemoryDao<>(this, TestItemTypeDto.class));
+		daos.put(TestTaskDto.class, new InMemoryDao<>(this, TestTaskDto.class));
 	}
 
-	@Override public boolean isInitialized() {
+	@Override
+	public boolean isInitialized() {
 		return !daos.isEmpty();
 	}
 
-	@Override public void release() {
+	@Override
+	public void release() {
 		daos.clear();
 	}
 }

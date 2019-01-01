@@ -1,5 +1,5 @@
-/*
- * Copyright 2010-2019 interactive instruments GmbH
+/**
+ * Copyright 2010-2018 interactive instruments GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.interactive_instruments.etf.test;
+
+import java.io.IOException;
+import java.io.OutputStream;
 
 import de.interactive_instruments.etf.dal.dao.PreparedDto;
 import de.interactive_instruments.etf.dal.dto.Dto;
 import de.interactive_instruments.etf.model.EID;
 import de.interactive_instruments.etf.model.OutputFormat;
 import de.interactive_instruments.properties.PropertyHolder;
-
-import java.io.IOException;
-import java.io.OutputStream;
 
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
