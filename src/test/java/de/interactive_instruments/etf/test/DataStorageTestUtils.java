@@ -45,7 +45,7 @@ public final class DataStorageTestUtils {
 					}
 				}
 			}
-		}catch (Exception e) {
+		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
 		return DATA_STORAGE;

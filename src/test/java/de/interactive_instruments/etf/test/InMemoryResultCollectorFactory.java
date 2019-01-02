@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2010-2019 interactive instruments GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package de.interactive_instruments.etf.test;
 
 import de.interactive_instruments.etf.dal.dto.run.TestTaskDto;
@@ -26,7 +25,8 @@ import de.interactive_instruments.etf.testdriver.TestRunLogger;
  */
 public class InMemoryResultCollectorFactory implements TestResultCollectorFactory {
 
-	@Override public TestResultCollector createTestResultCollector(final TestRunLogger logger, final TestTaskDto testTaskDto) {
+	@Override
+	public TestResultCollector createTestResultCollector(final TestRunLogger logger, final TestTaskDto testTaskDto) {
 		return new InMemoryTestResultCollector(DataStorageTestUtils.inMemoryStorage(), logger, testTaskDto);
 	}
 }

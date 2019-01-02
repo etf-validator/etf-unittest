@@ -21,6 +21,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
 import de.interactive_instruments.etf.dal.dao.*;
 import de.interactive_instruments.etf.dal.dto.Dto;
 import de.interactive_instruments.etf.dal.dto.result.TestCaseResultDto;
@@ -39,10 +43,6 @@ import de.interactive_instruments.exceptions.ObjectWithIdNotFoundException;
 import de.interactive_instruments.exceptions.StorageException;
 import de.interactive_instruments.exceptions.config.ConfigurationException;
 import de.interactive_instruments.properties.ConfigPropertyHolder;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Unmarshaller;
 
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
@@ -241,15 +241,15 @@ public class InMemoryDao<T extends Dto> implements StreamWriteDao<T> {
 		}
 	}
 
-	@Override public T add(final InputStream input, final ChangeBeforeStoreHook<T> hook) throws StorageException {
+	@Override
+	public T add(final InputStream input, final ChangeBeforeStoreHook<T> hook) throws StorageException {
 		try {
 			final JAXBContext jaxbContext = JAXBContext.newInstance(
 					TestTaskResultDto.class,
 					TestModuleResultDto.class,
 					TestCaseResultDto.class,
 					TestStepResultDto.class,
-					TestAssertionDto.class
-					);
+					TestAssertionDto.class);
 			final Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 			return (T) jaxbUnmarshaller.unmarshal(input);
 		} catch (JAXBException e) {
