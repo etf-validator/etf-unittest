@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2018 interactive instruments GmbH
+ * Copyright 2010-2019 interactive instruments GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,7 +42,7 @@ import de.interactive_instruments.properties.ConfigPropertyHolder;
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
  */
-class InMemoryDataStorage implements DataStorage {
+public class InMemoryDataStorage implements DataStorage {
 
 	private final Map daos = new HashMap<>();
 	private final ConfigPropertyHolder configPropertyHolder = new ConfigProperties();

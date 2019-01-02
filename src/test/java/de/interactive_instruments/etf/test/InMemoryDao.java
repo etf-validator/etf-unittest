@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2018 interactive instruments GmbH
+ * Copyright 2010-2019 interactive instruments GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package de.interactive_instruments.etf.test;
 
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -22,6 +23,12 @@ import java.util.Set;
 
 import de.interactive_instruments.etf.dal.dao.*;
 import de.interactive_instruments.etf.dal.dto.Dto;
+import de.interactive_instruments.etf.dal.dto.result.TestCaseResultDto;
+import de.interactive_instruments.etf.dal.dto.result.TestModuleResultDto;
+import de.interactive_instruments.etf.dal.dto.result.TestStepResultDto;
+import de.interactive_instruments.etf.dal.dto.result.TestTaskResultDto;
+import de.interactive_instruments.etf.dal.dto.test.ExecutableTestSuiteDto;
+import de.interactive_instruments.etf.dal.dto.test.TestAssertionDto;
 import de.interactive_instruments.etf.model.DefaultEidMap;
 import de.interactive_instruments.etf.model.EID;
 import de.interactive_instruments.etf.model.EidMap;
@@ -33,10 +40,14 @@ import de.interactive_instruments.exceptions.StorageException;
 import de.interactive_instruments.exceptions.config.ConfigurationException;
 import de.interactive_instruments.properties.ConfigPropertyHolder;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
+
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
  */
-class InMemoryDao<T extends Dto> implements WriteDao<T> {
+public class InMemoryDao<T extends Dto> implements StreamWriteDao<T> {
 
 	private final EidMap<T> dtos = new DefaultEidMap();
 	protected long lastModificationDate = System.currentTimeMillis();
@@ -48,7 +59,7 @@ class InMemoryDao<T extends Dto> implements WriteDao<T> {
 
 	public InMemoryDao(final InMemoryDataStorage dataStorage, final Class<T> type) {
 		this.dataStorage = dataStorage;
-		assert type.getClass().getSimpleName().contains("Dto");
+		assert type.getSimpleName().contains("Dto");
 		this.type = type;
 		this.id = type.getSimpleName().replace("Dto", "Dao");
 		this.listeners = new ArrayList<>();
@@ -230,4 +241,20 @@ class InMemoryDao<T extends Dto> implements WriteDao<T> {
 		}
 	}
 
+	@Override public T add(final InputStream input, final ChangeBeforeStoreHook<T> hook) throws StorageException {
+		try {
+			final JAXBContext jaxbContext = JAXBContext.newInstance(
+					TestTaskResultDto.class,
+					TestModuleResultDto.class,
+					TestCaseResultDto.class,
+					TestStepResultDto.class,
+					TestAssertionDto.class
+					);
+			final Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+			return (T) jaxbUnmarshaller.unmarshal(input);
+		} catch (JAXBException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
 }

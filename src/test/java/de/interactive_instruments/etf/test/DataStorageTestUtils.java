@@ -1,5 +1,5 @@
 /**
- * Copyright 2010-2018 interactive instruments GmbH
+ * Copyright 2010-2019 interactive instruments GmbH
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,58 +17,37 @@ package de.interactive_instruments.etf.test;
 
 import java.io.IOException;
 
-import de.interactive_instruments.IFile;
-import de.interactive_instruments.etf.EtfConstants;
+import de.interactive_instruments.etf.dal.dao.DataStorage;
 import de.interactive_instruments.etf.dal.dao.WriteDao;
-import de.interactive_instruments.etf.dal.dao.basex.BsxDataStorage;
 import de.interactive_instruments.etf.dal.dto.capabilities.TestObjectTypeDto;
 import de.interactive_instruments.etf.detector.TestObjectTypeDetectorManager;
 import de.interactive_instruments.etf.model.EidMap;
-import de.interactive_instruments.exceptions.ExcUtils;
-import de.interactive_instruments.exceptions.InitializationException;
-import de.interactive_instruments.exceptions.InvalidStateTransitionException;
-import de.interactive_instruments.exceptions.ObjectWithIdNotFoundException;
-import de.interactive_instruments.exceptions.config.ConfigurationException;
 
 /**
  * @author Jon Herrmann ( herrmann aT interactive-instruments doT de )
  */
-public class DataStorageTestUtils {
-	public static IFile DATA_STORAGE_DIR;
-	public static BsxDataStorage DATA_STORAGE = new BsxDataStorage();
+public final class DataStorageTestUtils {
+	private static DataStorage DATA_STORAGE = new InMemoryDataStorage();
 
-	public static void ensureInitialization() throws ConfigurationException, InvalidStateTransitionException,
-			InitializationException, IOException {
-		if (!DATA_STORAGE.isInitialized()) {
-			if (System.getenv("ETF_DS_DIR") != null) {
-				DATA_STORAGE_DIR = new IFile(System.getenv("ETF_DS_DIR"));
-				DATA_STORAGE_DIR.mkdirs();
-			} else if (new IFile("./build").exists()) {
-				DataStorageTestUtils.DATA_STORAGE_DIR = new IFile("./build/tmp/etf-ds");
-				DATA_STORAGE_DIR.mkdirs();
-			} else {
-				DATA_STORAGE_DIR = null;
-			}
-
-			if (DATA_STORAGE_DIR == null || !DATA_STORAGE_DIR.exists()) {
-				throw new InitializationException("DATA_STORAGE_DIR not set");
-			}
-			DataStorageTestUtils.DATA_STORAGE.getConfigurationProperties().setProperty(EtfConstants.ETF_DATASOURCE_DIR,
-					DATA_STORAGE_DIR.getAbsolutePath());
-			DATA_STORAGE.getConfigurationProperties().setProperty("etf.webapp.base.url", "http://localhost/etf-webapp");
-			DATA_STORAGE.getConfigurationProperties().setProperty("etf.api.base.url", "http://localhost/etf-webapp/v2");
-			DATA_STORAGE.init();
-
-			final WriteDao<TestObjectTypeDto> testObjectTypeDao = ((WriteDao<TestObjectTypeDto>) (DATA_STORAGE
-					.getDao(TestObjectTypeDto.class)));
-
-			final EidMap<TestObjectTypeDto> supportedTypes = TestObjectTypeDetectorManager.getSupportedTypes();
-			if (supportedTypes != null) {
-				testObjectTypeDao.deleteAllExisting(supportedTypes.keySet());
-				for (final TestObjectTypeDto testObjectTypeDto : supportedTypes.values()) {
-					testObjectTypeDao.add(testObjectTypeDto);
+	public static DataStorage inMemoryStorage() {
+		try {
+			if (!DATA_STORAGE.isInitialized()) {
+				DATA_STORAGE.getConfigurationProperties().setProperty("etf.webapp.base.url", "http://localhost/etf-webapp");
+				DATA_STORAGE.getConfigurationProperties().setProperty("etf.api.base.url", "http://localhost/etf-webapp/v2");
+				DATA_STORAGE.init();
+				final WriteDao<TestObjectTypeDto> testObjectTypeDao = ((WriteDao<TestObjectTypeDto>) (DATA_STORAGE
+						.getDao(TestObjectTypeDto.class)));
+				final EidMap<TestObjectTypeDto> supportedTypes = TestObjectTypeDetectorManager.getSupportedTypes();
+				if (supportedTypes != null) {
+					testObjectTypeDao.deleteAllExisting(supportedTypes.keySet());
+					for (final TestObjectTypeDto testObjectTypeDto : supportedTypes.values()) {
+						testObjectTypeDao.add(testObjectTypeDto);
+					}
 				}
 			}
+		}catch (Exception e) {
+			throw new IllegalStateException(e);
 		}
+		return DATA_STORAGE;
 	}
 }
