@@ -28,6 +28,9 @@ import java.util.stream.Collectors;
 import de.interactive_instruments.IFile;
 import de.interactive_instruments.SUtils;
 import de.interactive_instruments.etf.dal.dao.DataStorage;
+import de.interactive_instruments.etf.dal.dto.Dto;
+import de.interactive_instruments.etf.dal.dto.ModelItemDto;
+import de.interactive_instruments.etf.dal.dto.ModelItemTreeNode;
 import de.interactive_instruments.etf.dal.dto.result.*;
 import de.interactive_instruments.etf.dal.dto.run.TestTaskDto;
 import de.interactive_instruments.etf.dal.dto.test.*;
@@ -50,7 +53,7 @@ public class InMemoryTestResultCollector implements TestResultCollector {
 	private final TestTaskDto testTaskDto;
 	private final EidMap<AttachmentDto> attachments = new DefaultEidMap<>();
 
-	private final TestTaskResultDto testTaskResult = new TestTaskResultDto();
+	private final TestTaskResultDto testTaskResult;
 	private final List<TestModuleResultDto> testModuleResults = new ArrayList<>();
 	private final List<TestCaseResultDto> testCaseResults = new ArrayList<>();
 	private final List<TestStepResultDto> testStepResults = new ArrayList<>();
@@ -65,6 +68,7 @@ public class InMemoryTestResultCollector implements TestResultCollector {
 		this.inMemoryStorage = inMemoryStorage;
 		this.logger = logger;
 		this.testTaskDto = testTaskDto;
+		this.testTaskResult = testTaskDto.getTestTaskResult();
 		currentModelType = 0;
 	}
 
@@ -81,6 +85,16 @@ public class InMemoryTestResultCollector implements TestResultCollector {
 	@Override
 	public String getTestTaskResultId() {
 		return resultID;
+	}
+
+	@Override
+	public File getTempDir() {
+		try {
+			return IFile.createTempDir("etf-unittests");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
 	}
 
 	@Override
@@ -142,11 +156,6 @@ public class InMemoryTestResultCollector implements TestResultCollector {
 	}
 
 	@Override
-	public File getTempDir() {
-		return null;
-	}
-
-	@Override
 	public void internalError(final String translationTemplateId, final Map<String, String> tokenValuePairs,
 			final Throwable e) {
 
@@ -168,9 +177,6 @@ public class InMemoryTestResultCollector implements TestResultCollector {
 	}
 
 	private void stepDeeper(final int levelCheck) {
-		assert currentModelType > -1;
-		assert currentModelType < 6;
-		assert currentModelType < levelCheck;
 		currentModelType = levelCheck;
 	}
 
@@ -178,8 +184,12 @@ public class InMemoryTestResultCollector implements TestResultCollector {
 	public String startTestTask(final String testTaskId, final long startTimestamp)
 			throws IllegalArgumentException, IllegalStateException {
 		stepDeeper(1);
-		this.testTaskResult.setId(EidFactory.getDefault().createRandomId());
-		this.testTaskResult.setResultedFrom(this.testTaskDto.getExecutableTestSuite());
+		if (this.testTaskResult.getId() == null) {
+			this.testTaskResult.setId(EidFactory.getDefault().createRandomId());
+		}
+		if (this.testTaskResult.getResultedFrom() == null) {
+			this.testTaskResult.setResultedFrom(this.testTaskDto.getExecutableTestSuite());
+		}
 		this.testTaskResult.setStartTimestamp(new Date(startTimestamp));
 		return testTaskResult.getId().getId();
 	}
@@ -189,8 +199,10 @@ public class InMemoryTestResultCollector implements TestResultCollector {
 			throws IllegalArgumentException, IllegalStateException {
 		stepDeeper(2);
 		final TestModuleResultDto testModuleResultDto = new TestModuleResultDto();
+		testModuleResultDto.setParent(this.testTaskResult);
 		testModuleResultDto.setId(EidFactory.getDefault().createRandomId());
-		this.testTaskResult.setResultedFrom(this.testTaskDto.getExecutableTestSuite().getChildrenAsMap().get(testModuleId));
+		testModuleResultDto.setResultedFrom(findInTest(testModuleId));
+		testTaskResult.addChild(testModuleResultDto);
 		this.testModuleResults.add(testModuleResultDto);
 		testModuleResultDto.setStartTimestamp(new Date(startTimestamp));
 		return testModuleResultDto.getId().getId();
@@ -202,13 +214,8 @@ public class InMemoryTestResultCollector implements TestResultCollector {
 		stepDeeper(3);
 		final TestCaseResultDto testCaseResultDto = new TestCaseResultDto();
 		testCaseResultDto.setId(EidFactory.getDefault().createRandomId());
-		for (final TestModuleDto testModule : this.testTaskDto.getExecutableTestSuite().getTestModules()) {
-			final TestModelItemDto testCase = testModule.getChildrenAsMap().get(testCaseId);
-			if (testCase != null) {
-				testCaseResultDto.setResultedFrom(testCase);
-				break;
-			}
-		}
+		testCaseResultDto.setResultedFrom(findInTest(testCaseId));
+		addParentChildRelation(testCaseResultDto, testModuleResults);
 		testCaseResultDto.setStartTimestamp(new Date(startTimestamp));
 		this.testCaseResults.add(testCaseResultDto);
 		return testCaseResultDto.getId().getId();
@@ -220,15 +227,8 @@ public class InMemoryTestResultCollector implements TestResultCollector {
 		stepDeeper(4);
 		final TestStepResultDto testStepResultDto = new TestStepResultDto();
 		testStepResultDto.setId(EidFactory.getDefault().createRandomId());
-		out: for (final TestModuleDto testModule : this.testTaskDto.getExecutableTestSuite().getTestModules()) {
-			for (final TestCaseDto testCase : testModule.getTestCases()) {
-				final TestModelItemDto testStep = testCase.getChildrenAsMap().get(testStepId);
-				if (testStep != null) {
-					testStepResultDto.setResultedFrom(testStep);
-					break out;
-				}
-			}
-		}
+		testStepResultDto.setResultedFrom(findInTest(testStepId));
+		addParentChildRelation(testStepResultDto, testCaseResults);
 		testStepResultDto.setStartTimestamp(new Date(startTimestamp));
 		this.testStepResults.add(testStepResultDto);
 		return testStepResultDto.getId().getId();
@@ -240,38 +240,129 @@ public class InMemoryTestResultCollector implements TestResultCollector {
 		stepDeeper(5);
 		final TestAssertionResultDto testAssertionResultDto = new TestAssertionResultDto();
 		testAssertionResultDto.setId(EidFactory.getDefault().createRandomId());
-		out: for (final TestModuleDto testModule : this.testTaskDto.getExecutableTestSuite().getTestModules()) {
-			for (final TestCaseDto testCase : testModule.getTestCases()) {
-				for (final TestStepDto testStep : testCase.getTestSteps()) {
-					final TestModelItemDto assertion = testStep.getChildrenAsMap().get(testAssertionId);
-					if (assertion != null) {
-						testAssertionResultDto.setResultedFrom(assertion);
-						break out;
-					}
-				}
-			}
-		}
+		testAssertionResultDto.setResultedFrom(findInTest(testAssertionId));
+		addParentChildRelation(testAssertionResultDto, testStepResults);
 		testAssertionResultDto.setStartTimestamp(new Date(startTimestamp));
 		this.testAssertionResults.add(testAssertionResultDto);
 		return testAssertionResultDto.getId().getId();
 	}
 
+	private static TestModelItemDto findInTest(final String testModelItemId, final EidMap<? extends TestModelItemDto> items,
+			final int maxSteps) {
+		if (items != null) {
+			final TestModelItemDto i = items.get(testModelItemId);
+			if (i != null) {
+				return i;
+			}
+			if (maxSteps > 0) {
+				for (final Object item : items.asCollection()) {
+					if (((TestModelItemDto) item).getChildrenAsMap() != null) {
+						final TestModelItemDto child = findInTest(testModelItemId,
+								((TestModelItemDto) item).getChildrenAsMap(), maxSteps - 1);
+						if (child != null) {
+							return child;
+						}
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	private static class PlaceHolder extends TestModelItemDto {
+		public PlaceHolder(final String testModelItemId) {
+			this.id = EidFactory.getDefault().createUUID(testModelItemId);
+		}
+
+		@Override
+		public Dto createCopy() {
+			final PlaceHolder copy = new PlaceHolder(this.id.getId());
+			copy.children = this.children;
+			return copy;
+		}
+	}
+
+	private <T extends TestModelItemDto> T findInTest(final String testModelItemId) {
+		final ExecutableTestSuiteDto ets = testTaskDto.getExecutableTestSuite();
+		final T t = (T) findInTest(testModelItemId, ets.getChildrenAsMap(), 25);
+		if (t == null) {
+			return (T) new PlaceHolder(testModelItemId);
+		}
+		return t;
+	}
+
+	private static <T extends ResultModelItemDto> T findInResult(final String testModelItemId, final List<T> items) {
+		if (items != null) {
+			for (final T item : items) {
+				if (item.getResultedFrom().getId().equals(testModelItemId)) {
+					return item;
+				}
+			}
+		}
+		return null;
+	}
+
+	private ResultModelItemDto findFromResultAndSetLevel(final String testModelItemId) {
+		final TestAssertionResultDto testAssertionResult = findInResult(testModelItemId, testAssertionResults);
+		if (testAssertionResult != null) {
+			currentModelType = 4;
+			return testAssertionResult;
+		}
+
+		final TestStepResultDto testStepResult = findInResult(testModelItemId, testStepResults);
+		if (testStepResult != null) {
+			currentModelType = 3;
+			return testStepResult;
+		}
+
+		final TestCaseResultDto testCaseResult = findInResult(testModelItemId, testCaseResults);
+		if (testCaseResult != null) {
+			currentModelType = 2;
+			return testCaseResult;
+		}
+
+		final TestModuleResultDto testModuleResult = findInResult(testModelItemId, testModuleResults);
+		if (testModuleResult != null) {
+			currentModelType = 1;
+			return testModuleResult;
+		}
+		if (testTaskResult.getResultedFrom().getId().equals(testModelItemId)) {
+			currentModelType = 0;
+			return testTaskResult;
+		}
+		return null;
+	}
+
 	private void setResult(final String testModelItemId, final ResultModelItemDto item, final long stopTimestamp,
 			final int status) {
-		if (!item.getId().equals(testModelItemId)) {
-			currentModelType++;
-			throw new IllegalArgumentException("Invalid ID: " + testModelItemId);
+		final ResultModelItemDto candidate = findFromResultAndSetLevel(testModelItemId);
+		if (candidate == null) {
+			throw new IllegalArgumentException("Not found: " + testModelItemId);
 		}
-		item.setDuration(stopTimestamp - item.getStartTimestamp().getTime());
-		final List<? extends ResultModelItemDto> children = item.getChildren();
+		candidate.setDuration(stopTimestamp - candidate.getStartTimestamp().getTime());
+		final List<? extends ResultModelItemDto> children = candidate.getChildren();
 		if (children != null) {
 			final List<TestResultStatus> resultStatus = children.stream().map(
 					ResultModelItemDto::getResultStatus).collect(Collectors.toList());
 			resultStatus.add(TestResultStatus.valueOf(status));
-			item.setResultStatus(TestResultStatus.aggregateStatus(resultStatus));
+			candidate.setResultStatus(TestResultStatus.aggregateStatus(resultStatus));
 		} else {
-			item.setResultStatus(TestResultStatus.valueOf(status));
+			candidate.setResultStatus(TestResultStatus.valueOf(status));
 		}
+	}
+
+	private static void addParentChildRelation(final ResultModelItemDto child,
+			final List<? extends ResultModelItemDto> parents) {
+		final ResultModelItemDto parent = getLast(parents);
+		parent.addChild(child);
+		child.setParent(parent);
+	}
+
+	private static <T extends ResultModelItemDto> T getLast(final List<T> items) {
+		if (items.isEmpty()) {
+			throw new IllegalStateException();
+		}
+		return items.get(items.size() - 1);
 	}
 
 	@Override
@@ -283,19 +374,19 @@ public class InMemoryTestResultCollector implements TestResultCollector {
 			setResult(testModelItemId, this.testTaskResult, stopTimestamp, status);
 			return testTaskResult.getId().getId();
 		case 2:
-			final TestModuleResultDto moduleResult = this.testModuleResults.get(this.testModuleResults.size() - 1);
+			final TestModuleResultDto moduleResult = getLast(this.testModuleResults);
 			setResult(testModelItemId, moduleResult, stopTimestamp, status);
 			return moduleResult.getId().getId();
 		case 3:
-			final TestCaseResultDto testCaseResultDto = this.testCaseResults.get(this.testCaseResults.size() - 1);
+			final TestCaseResultDto testCaseResultDto = getLast(this.testCaseResults);
 			setResult(testModelItemId, testCaseResultDto, stopTimestamp, status);
 			return testCaseResultDto.getId().getId();
 		case 4:
-			final TestStepResultDto testStepDto = this.testStepResults.get(this.testStepResults.size() - 1);
+			final TestStepResultDto testStepDto = getLast(this.testStepResults);
 			setResult(testModelItemId, testStepDto, stopTimestamp, status);
 			return testStepDto.getId().getId();
 		case 5:
-			final TestAssertionResultDto testAssertionDto = this.testAssertionResults.get(this.testAssertionResults.size() - 1);
+			final TestAssertionResultDto testAssertionDto = getLast(this.testAssertionResults);
 			setResult(testModelItemId, testAssertionDto, stopTimestamp, status);
 			return testAssertionDto.getId().getId();
 		default:
